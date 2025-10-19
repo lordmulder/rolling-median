@@ -1,6 +1,5 @@
 # rolling-median
 
-[![no_std](https://img.shields.io/badge/rust-no__std-orchid?logo=rust)](https://docs.rust-embedded.org/book/intro/no-std.html)
 [![Crates.io](https://img.shields.io/crates/v/rolling-median)](https://crates.io/crates/rolling-median)
 [![Downloads](https://img.shields.io/crates/d/rolling-median)](https://crates.io/crates/rolling-median)
 [![Release Date](https://img.shields.io/github/release-date/lordmulder/rolling-median)](https://crates.io/crates/rolling-median/versions)
@@ -9,22 +8,22 @@
 
 Computes the [**median**](https://en.wikipedia.org/wiki/Median) of a data set, using a "rolling" (online) algorithm.
 
-### Complexity:
+## Complexity:
 
-The `push()` opreration has a complexity of: **O(log(n))**
+The `push()` opreration has a complexity of: **`O(log(n))`**
 
-The `get()` opreration has a complexity of: **O(1)**
+The `get()` opreration has a complexity of: **`O(1)`**
 
-### Installation
+## Installation
 
 In order to use this crate, add it under `[dependencies]` to your **`Cargo.toml`**:
 
 ```
 [dependencies]
-rolling-median = "1.0.0"
+rolling-median = "1.1.0"
 ```
 
-### Usage
+## Usage
 
 Here is a simple example that demonstrates how to use it:
 

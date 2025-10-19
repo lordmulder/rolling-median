@@ -6,13 +6,15 @@
 
 //! # rolling-median
 //!
-//! Computes the [**median**](https://en.wikipedia.org/wiki/Median) of a data set, using a "rolling" (online) algorithm.
+//! Computes the [**median**](https://en.wikipedia.org/wiki/Median) of a data set, using a “rolling” (online) algorithm.
+//!
+//! It uses two heaps (a “min” heap and a “max” heap) to efficiently keep track of the “middle” element.
 //!
 //! ### Complexity:
 //!
-//! The `push()` opreration has a complexity of: **O(log(n))**
+//! The `push()` opreration has a complexity of: **`O(log(n))`**
 //!
-//! The `get()` opreration has a complexity of: **O(1)**
+//! The `get()` opreration has a complexity of: **`O(1)`**
 //!
 //! ### Usage
 //!
