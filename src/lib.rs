@@ -26,18 +26,18 @@
 //!
 //!     while let Some(value) = get_data() {
 //!         rolling_median.push(value);
-//!         println!("Median, so far: {:?}", rolling_median.get::<f64>())
+//!         println!("Median, so far: {:?}", rolling_median.get())
 //!     }
 //!
-//!     println!("Final median: {:?}", rolling_median.get::<f64>())
+//!     println!("Final median: {:?}", rolling_median.get())
 //! }
 //!
-//! fn get_data() -> Option<u32> {
+//! fn get_data() -> Option<f64> {
 //!     None /* actually generate some data here! */
 //! }
 //! ```
 
-use num_traits::{Float, PrimInt};
+use ordered_float::{FloatCore, OrderedFloat};
 use std::{cmp::Reverse, collections::BinaryHeap};
 
 // --------------------------------------------------------------------------
@@ -45,34 +45,34 @@ use std::{cmp::Reverse, collections::BinaryHeap};
 // --------------------------------------------------------------------------
 
 /// Computes the median of a data set, using a "rolling" (online) algorithm
-pub struct Median<T: PrimInt> {
-    lo: BinaryHeap<T>,
-    hi: BinaryHeap<Reverse<T>>,
+pub struct Median<T: FloatCore> {
+    heap_lo: BinaryHeap<OrderedFloat<T>>,
+    heap_hi: BinaryHeap<Reverse<OrderedFloat<T>>>,
 }
 
-impl<T: PrimInt> Median<T> {
+impl<T: FloatCore> Median<T> {
     /// Initializes a new rolling median computation
     pub fn new() -> Self {
-        Median { lo: BinaryHeap::new(), hi: BinaryHeap::new() }
+        Median { heap_lo: BinaryHeap::new(), heap_hi: BinaryHeap::new() }
     }
 
     /// Insert the next value
     ///
     /// This operation has a complexity of **O(log(n))**.
     pub fn push(&mut self, value: T) {
-        if self.lo.peek().is_none_or(|peek| value <= *peek) {
-            self.lo.push(value);
+        if self.heap_lo.peek().is_none_or(|peek| value <= peek.0) {
+            self.heap_lo.push(value.into());
         } else {
-            self.hi.push(Reverse(value));
+            self.heap_hi.push(Reverse(value.into()));
         }
 
-        if self.lo.len() > self.hi.len().checked_add(1usize).unwrap() {
-            if let Some(value) = self.lo.pop() {
-                self.hi.push(Reverse(value));
+        if self.heap_lo.len() > self.heap_hi.len().checked_add(1usize).unwrap() {
+            if let Some(value) = self.heap_lo.pop() {
+                self.heap_hi.push(Reverse(value));
             }
-        } else if self.hi.len() > self.lo.len() {
-            if let Some(Reverse(value)) = self.hi.pop() {
-                self.lo.push(value);
+        } else if self.heap_hi.len() > self.heap_lo.len() {
+            if let Some(Reverse(value)) = self.heap_hi.pop() {
+                self.heap_lo.push(value);
             }
         }
     }
@@ -80,20 +80,20 @@ impl<T: PrimInt> Median<T> {
     /// Get the current median
     ///
     /// This operation has a complexity of **O(1)**.
-    pub fn get<U: Float>(&self) -> Option<U> {
-        if self.lo.is_empty() {
+    pub fn get(&self) -> Option<T> {
+        if self.heap_lo.is_empty() {
             None
-        } else if self.lo.len() == self.hi.len() {
-            let lo_top = *self.lo.peek().unwrap();
-            let hi_top = self.hi.peek().unwrap().0;
-            Some((U::from(lo_top).unwrap() + U::from(hi_top).unwrap()) / U::from(2).unwrap())
+        } else if self.heap_lo.len() == self.heap_hi.len() {
+            let lo_top = *self.heap_lo.peek().unwrap();
+            let hi_top = self.heap_hi.peek().unwrap().0;
+            Some((lo_top.0 + hi_top.0) / T::from(2).unwrap())
         } else {
-            Some(U::from(*self.lo.peek().unwrap()).unwrap())
+            Some(self.heap_lo.peek().unwrap().0)
         }
     }
 }
 
-impl<T: PrimInt> Default for Median<T> {
+impl<T: FloatCore> Default for Median<T> {
     /// Initializes a new rolling median computation
     fn default() -> Self {
         Self::new()

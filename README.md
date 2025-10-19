@@ -36,13 +36,13 @@ fn main() {
 
     while let Some(value) = get_data() {
         rolling_median.push(value);
-        println!("Median, so far: {:?}", rolling_median.get::<f64>())
+        println!("Median, so far: {:?}", rolling_median.get())
     }
 
-    println!("Final median: {:?}", rolling_median.get::<f64>())
+    println!("Final median: {:?}", rolling_median.get())
 }
 
-fn get_data() -> Option<u32> { /* ... */ }
+fn get_data() -> Option<f64> { /* ... */ }
 ```
 
 ## License
