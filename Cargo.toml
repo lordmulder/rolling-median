@@ -3,7 +3,7 @@ name = "rolling-median"
 description = "Compute the median using a 'rolling' (online) algorithm"
 license = "0BSD"
 repository = "https://github.com/lordmulder/rustc-version-const"
-version = "1.1.0"
+version = "1.2.0"
 edition = "2018"
 
 [dependencies]

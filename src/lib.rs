@@ -3,6 +3,7 @@
 // Copyright (C) 2025 by LoRd_MuldeR <mulder2@gmx.de>
 
 #![allow(clippy::needless_doctest_main)]
+#![allow(clippy::unnecessary_map_or)]
 
 //! # rolling-median
 //!
@@ -62,7 +63,7 @@ impl<T: FloatCore> Median<T> {
     ///
     /// This operation has a complexity of **O(log(n))**.
     pub fn push(&mut self, value: T) {
-        if self.heap_lo.peek().is_none_or(|peek| value <= peek.0) {
+        if self.heap_lo.peek().map_or(true, |peek| value <= peek.0) {
             self.heap_lo.push(value.into());
         } else {
             self.heap_hi.push(Reverse(value.into()));
