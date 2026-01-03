@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: 0BSD
 // rolling-median
-// Copyright (C) 2025 by LoRd_MuldeR <mulder2@gmx.de>
+// Copyright (C) 2025-2026 by LoRd_MuldeR <mulder2@gmx.de>
 
 #![allow(clippy::needless_doctest_main)]
 #![allow(clippy::unnecessary_map_or)]
@@ -11,13 +11,13 @@
 //!
 //! It uses two heaps (a “min” heap and a “max” heap) to efficiently keep track of the “middle” element.
 //!
-//! ### Complexity:
+//! ## Complexity
 //!
-//! The `push()` opreration has a complexity of: **`O(log(n))`**
+//! The `push()` operation has a complexity of: **`O(log(n))`**
 //!
-//! The `get()` opreration has a complexity of: **`O(1)`**
+//! The `get()` operation has a complexity of: **`O(1)`**
 //!
-//! ### Usage
+//! ## Usage
 //!
 //! Here is a simple example that demonstrates how to use it in your code:
 //!
@@ -41,7 +41,7 @@
 //! ```
 
 use ordered_float::{FloatCore, OrderedFloat};
-use std::{cmp::Reverse, collections::BinaryHeap};
+use std::{cmp::Reverse, collections::BinaryHeap, convert::TryInto};
 
 // --------------------------------------------------------------------------
 // Rolling median
@@ -61,8 +61,14 @@ impl<T: FloatCore> Median<T> {
 
     /// Insert the next value
     ///
-    /// This operation has a complexity of **O(log(n))**.
+    /// This operation has a complexity of **`O(log(n))`**.
+    ///
+    /// The value **must not** be `NaN`.
     pub fn push(&mut self, value: T) {
+        if value.is_nan() {
+            return; /* do *not* push the NaN value! */
+        }
+
         if self.heap_lo.peek().map_or(true, |peek| value <= peek.0) {
             self.heap_lo.push(value.into());
         } else {
@@ -82,7 +88,7 @@ impl<T: FloatCore> Median<T> {
 
     /// Get the current median
     ///
-    /// This operation has a complexity of **O(1)**.
+    /// This operation has a complexity of **`O(1)`**.
     pub fn get(&self) -> Option<T> {
         if self.heap_lo.is_empty() {
             None
@@ -94,11 +100,37 @@ impl<T: FloatCore> Median<T> {
             Some(self.heap_lo.peek().unwrap().0)
         }
     }
+
+    /// Clear all values that have been pushed so far
+    pub fn clear(&mut self) {
+        self.heap_lo.clear();
+        self.heap_hi.clear();
+    }
 }
 
 impl<T: FloatCore> Default for Median<T> {
     /// Initializes a new rolling median computation
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl<T: FloatCore> TryInto<f32> for Median<T> {
+    type Error = ();
+    fn try_into(self) -> Result<f32, Self::Error> {
+        match self.get() {
+            Some(value) => value.to_f32().ok_or(()),
+            None => Err(()),
+        }
+    }
+}
+
+impl<T: FloatCore> TryInto<f64> for Median<T> {
+    type Error = ();
+    fn try_into(self) -> Result<f64, Self::Error> {
+        match self.get() {
+            Some(value) => value.to_f64().ok_or(()),
+            None => Err(()),
+        }
     }
 }

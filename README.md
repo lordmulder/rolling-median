@@ -8,11 +8,11 @@
 
 Computes the [**median**](https://en.wikipedia.org/wiki/Median) of a data set, using a "rolling" (online) algorithm.
 
-## Complexity:
+## Complexity
 
-The `push()` opreration has a complexity of: **`O(log(n))`**
+The `push()` operation has a complexity of: **`O(log(n))`**
 
-The `get()` opreration has a complexity of: **`O(1)`**
+The `get()` operation has a complexity of: **`O(1)`**
 
 ## Installation
 
@@ -20,7 +20,7 @@ In order to use this crate, add it under `[dependencies]` to your **`Cargo.toml`
 
 ```
 [dependencies]
-rolling-median = "1.2.0"
+rolling-median = "1.3.0"
 ```
 
 ## Usage
@@ -48,4 +48,4 @@ fn get_data() -> Option<f64> { /* ... */ }
 
 This software is released under the BSD Zero Clause (“0BSD”) License.
 
-Copyright (C) 2025 by LoRd_MuldeR &lt;mulder2@gmx.de&gt;.
+Copyright (C) 2025-2026 by LoRd_MuldeR &lt;mulder2@gmx.de&gt;.
