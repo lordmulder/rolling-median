@@ -10,7 +10,7 @@ fn main() {
     let mut rolling_median = Median::new();
 
     for value in VALUES {
-        rolling_median.push(value);
+        rolling_median.push(value).expect("Invalid value!");
         println!("Median, so far: {}", rolling_median.get().expect("No result!"))
     }
 

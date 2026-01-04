@@ -2,12 +2,14 @@
 // rolling-median
 // Copyright (C) 2025-2026 by LoRd_MuldeR <mulder2@gmx.de>
 
+use core::{f32, f64};
+
 use ordered_float::OrderedFloat;
 use rand_pcg::{
     rand_core::{RngCore, SeedableRng, TryRngCore},
     Pcg64,
 };
-use rolling_median::Median;
+use rolling_median::{InvalidValue, Median};
 
 // --------------------------------------------------------------------------
 // Utility functions
@@ -38,7 +40,7 @@ fn do_test_u64(seed: u64, count: usize) {
     for _ in 0..count {
         let value = random.try_next_u64().unwrap() as f64;
         values.push(value);
-        median.push(value);
+        assert!(median.push(value).is_ok())
     }
 
     assert_eq!(compute_median(&values), median.get());
@@ -52,7 +54,7 @@ fn do_test_f64(seed: u64, count: usize) {
     for _ in 0..count {
         let value = (random.next_u64() >> 11) as f64 * (1.0 / (1u64 << 53) as f64);
         values.push(value);
-        median.push(value);
+        assert!(median.push(value).is_ok())
     }
 
     assert_eq!(compute_median(&values), median.get());
@@ -170,4 +172,72 @@ fn test_median_7b() {
 #[test]
 fn test_median_7c() {
     do_test_f64(2u64, 998usize);
+}
+
+#[test]
+fn test_median_8a() {
+    let mut median = Median::new();
+    assert!(matches!(median.push(f32::NAN), Err(InvalidValue)));
+}
+
+#[test]
+fn test_median_8b() {
+    let mut median = Median::new();
+    assert!(matches!(median.push(f64::NAN), Err(InvalidValue)));
+}
+
+#[test]
+fn test_median_8c() {
+    let mut median = Median::new();
+    assert!(matches!(median.push(f32::INFINITY), Err(InvalidValue)));
+}
+
+#[test]
+fn test_median_8d() {
+    let mut median = Median::new();
+    assert!(matches!(median.push(f64::INFINITY), Err(InvalidValue)));
+}
+
+#[test]
+fn test_median_8e() {
+    let mut median = Median::new();
+    assert!(matches!(median.push(f32::NEG_INFINITY), Err(InvalidValue)));
+}
+
+#[test]
+fn test_median_8f() {
+    let mut median = Median::new();
+    assert!(matches!(median.push(f64::NEG_INFINITY), Err(InvalidValue)));
+}
+
+#[test]
+fn test_median_9a() {
+    let mut median = Median::new();
+    assert!(median.push(f32::MAX).is_ok());
+    assert!(median.push(f32::MAX).is_ok());
+    assert_eq!(median.get().unwrap(), f32::MAX);
+}
+
+#[test]
+fn test_median_9b() {
+    let mut median = Median::new();
+    assert!(median.push(f64::MAX).is_ok());
+    assert!(median.push(f64::MAX).is_ok());
+    assert_eq!(median.get().unwrap(), f64::MAX);
+}
+
+#[test]
+fn test_median_9c() {
+    let mut median = Median::new();
+    assert!(median.push(f32::MAX).is_ok());
+    assert!(median.push(f32::MIN).is_ok());
+    assert_eq!(median.get().unwrap(), 0.0f32);
+}
+
+#[test]
+fn test_median_9d() {
+    let mut median = Median::new();
+    assert!(median.push(f64::MAX).is_ok());
+    assert!(median.push(f64::MIN).is_ok());
+    assert_eq!(median.get().unwrap(), 0.0f64);
 }

@@ -24,24 +24,45 @@
 //! ```rust
 //! use rolling_median::Median;
 //!
+//! const VALUES: [f64; 6usize] = [3.27f64, 4.60f64, 5.95f64, 9.93f64, 7.79f64, 4.73f64];
+//!
 //! fn main() {
 //!     let mut rolling_median = Median::new();
 //!
-//!     while let Some(value) = get_data() {
-//!         rolling_median.push(value);
-//!         println!("Median, so far: {:?}", rolling_median.get())
+//!     for value in VALUES {
+//!         rolling_median.push(value).expect("Invalid value!");
+//!         println!("Median, so far: {}", rolling_median.get().expect("No result!"))
 //!     }
 //!
-//!     println!("Final median: {:?}", rolling_median.get())
-//! }
-//!
-//! fn get_data() -> Option<f64> {
-//!     None /* actually generate some data here! */
+//!     println!("Final median: {}", rolling_median.get().expect("No result!"))
 //! }
 //! ```
 
 use ordered_float::{FloatCore, OrderedFloat};
 use std::{cmp::Reverse, collections::BinaryHeap, convert::TryInto};
+
+// --------------------------------------------------------------------------
+// Error type
+// --------------------------------------------------------------------------
+
+/// Indicates that the given value was invalid.
+#[derive(Debug)]
+pub struct InvalidValue;
+
+// --------------------------------------------------------------------------
+// Utility function
+// --------------------------------------------------------------------------
+
+#[inline]
+fn midpoint<T: FloatCore>(a: T, b: T) -> T {
+    if size_of::<T>() == 4usize {
+        T::from(a.to_f32().unwrap().midpoint(b.to_f32().unwrap())).unwrap()
+    } else if size_of::<T>() == 8usize {
+        T::from(a.to_f64().unwrap().midpoint(b.to_f64().unwrap())).unwrap()
+    } else {
+        unimplemented!("Unsupported floating-point type!");
+    }
+}
 
 // --------------------------------------------------------------------------
 // Rolling median
@@ -61,12 +82,12 @@ impl<T: FloatCore> Median<T> {
 
     /// Insert the next value
     ///
-    /// This operation has a complexity of **`O(log(n))`**.
+    /// Returns `Ok(())`, if the value was inserted, or `Err(InvalidValue)`, if an attempt to insert a non-finite value was made.
     ///
-    /// The value **must not** be `NaN`.
-    pub fn push(&mut self, value: T) {
-        if value.is_nan() {
-            return; /* do *not* push the NaN value! */
+    /// This operation has a complexity of **`O(log(n))`**.
+    pub fn push(&mut self, value: T) -> Result<(), InvalidValue> {
+        if !value.is_finite() {
+            return Err(InvalidValue);
         }
 
         if self.heap_lo.peek().map_or(true, |peek| value <= peek.0) {
@@ -84,9 +105,13 @@ impl<T: FloatCore> Median<T> {
                 self.heap_lo.push(value);
             }
         }
+
+        Ok(())
     }
 
     /// Get the current median
+    ///
+    /// Returns `Some(median_value)`, if at least one value was inserted; otherwise `None`.
     ///
     /// This operation has a complexity of **`O(1)`**.
     pub fn get(&self) -> Option<T> {
@@ -95,7 +120,7 @@ impl<T: FloatCore> Median<T> {
         } else if self.heap_lo.len() == self.heap_hi.len() {
             let lo_top = *self.heap_lo.peek().unwrap();
             let hi_top = self.heap_hi.peek().unwrap().0;
-            Some((lo_top.0 + hi_top.0) / T::from(2).unwrap())
+            Some(midpoint(lo_top.0, hi_top.0))
         } else {
             Some(self.heap_lo.peek().unwrap().0)
         }

@@ -16,11 +16,11 @@ The `get()` operation has a complexity of: **`O(1)`**
 
 ## Installation
 
-In order to use this crate, add it under `[dependencies]` to your **`Cargo.toml`**:
+In order to use this crate, add it to `[dependencies]` in your **`Cargo.toml`**:
 
 ```
 [dependencies]
-rolling-median = "1.3.0"
+rolling-median = "1.4.0"
 ```
 
 ## Usage
