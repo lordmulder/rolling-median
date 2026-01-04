@@ -151,7 +151,7 @@ impl<T: FloatCore + Midpoint> Median<T> {
         self.heap_lo.len().saturating_add(self.heap_hi.len())
     }
 
-    /// Returns `true`, if **no** values have been inserted yet; otherwise `true`
+    /// Returns `true`, if **no** values have been inserted yet; otherwise `false`
     pub fn is_empty(&self) -> bool {
         self.heap_lo.is_empty() && self.heap_hi.is_empty()
     }
