@@ -4,12 +4,11 @@
 
 use core::{f32, f64};
 
-use ordered_float::OrderedFloat;
 use rand_pcg::{
     rand_core::{RngCore, SeedableRng, TryRngCore},
     Pcg64,
 };
-use rolling_median::{InvalidValue, Median};
+use rolling_median::{float_utils::FloatOrd, InvalidValue, Median};
 
 // --------------------------------------------------------------------------
 // Utility functions
@@ -21,7 +20,7 @@ fn compute_median(values: &Vec<f64>) -> Option<f64> {
     }
 
     let len = values.len();
-    let mut values: Vec<OrderedFloat<f64>> = values.iter().map(|val| OrderedFloat::from(*val)).collect();
+    let mut values: Vec<FloatOrd<f64>> = values.iter().map(|val| FloatOrd::from(*val)).collect();
     values.sort();
     let (mid, rem) = (len / 2usize, len % 2usize);
 

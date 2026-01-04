@@ -3,11 +3,8 @@ name = "rolling-median"
 description = "Compute the median using a 'rolling' (online) algorithm"
 license = "0BSD"
 repository = "https://github.com/lordmulder/rolling-median"
-version = "1.5.1"
+version = "1.5.2"
 edition = "2018"
-
-[dependencies]
-ordered-float = { version = "5.1.0" , default-features = false }
 
 [dev-dependencies]
 rand_pcg = { version = "0.9.0", default-features = false }
