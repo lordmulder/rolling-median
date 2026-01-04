@@ -31,6 +31,10 @@ pub trait FloatType: Copy + Clone {
 impl FloatType for f32 {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
+        assert!(!(self.is_nan() || other.is_nan()), "Value must not be NaN!");
+        if *self == *other {
+            return Ordering::Equal;
+        }
         self.total_cmp(other)
     }
 
@@ -52,6 +56,10 @@ impl FloatType for f32 {
 impl FloatType for f64 {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
+        assert!(!(self.is_nan() || other.is_nan()), "Value must not be NaN!");
+        if *self == *other {
+            return Ordering::Equal;
+        }
         self.total_cmp(other)
     }
 
