@@ -60,6 +60,22 @@ fn do_test_f64(seed: u64, count: usize) {
     assert_eq!(compute_median(&values), median.get());
 }
 
+fn do_test_array_f32(values: &[f32], expected_median: f32) {
+    let mut median = Median::new();
+    for value in values {
+        assert!(median.push(*value).is_ok());
+    }
+    assert_eq!(median.get().unwrap(), expected_median);
+}
+
+fn do_test_array_f64(values: &[f64], expected_median: f64) {
+    let mut median = Median::new();
+    for value in values {
+        assert!(median.push(*value).is_ok());
+    }
+    assert_eq!(median.get().unwrap(), expected_median);
+}
+
 // --------------------------------------------------------------------------
 // Tests
 // --------------------------------------------------------------------------
@@ -188,56 +204,48 @@ fn test_median_8b() {
 
 #[test]
 fn test_median_8c() {
-    let mut median = Median::new();
-    assert!(matches!(median.push(f32::INFINITY), Err(InvalidValue)));
+    do_test_array_f32(&[f32::INFINITY, f32::INFINITY], f32::INFINITY);
+    do_test_array_f32(&[f32::NEG_INFINITY, f32::NEG_INFINITY], f32::NEG_INFINITY);
 }
 
 #[test]
 fn test_median_8d() {
-    let mut median = Median::new();
-    assert!(matches!(median.push(f64::INFINITY), Err(InvalidValue)));
+    do_test_array_f64(&[f64::INFINITY, f64::INFINITY], f64::INFINITY);
+    do_test_array_f64(&[f64::NEG_INFINITY, f64::NEG_INFINITY], f64::NEG_INFINITY);
 }
 
 #[test]
 fn test_median_8e() {
-    let mut median = Median::new();
-    assert!(matches!(median.push(f32::NEG_INFINITY), Err(InvalidValue)));
+    do_test_array_f32(&[f32::INFINITY, f32::NEG_INFINITY], 0.0f32);
+    do_test_array_f32(&[f32::NEG_INFINITY, f32::INFINITY], 0.0f32);
 }
 
 #[test]
 fn test_median_8f() {
-    let mut median = Median::new();
-    assert!(matches!(median.push(f64::NEG_INFINITY), Err(InvalidValue)));
+    do_test_array_f64(&[f64::INFINITY, f64::NEG_INFINITY], 0.0f64);
+    do_test_array_f64(&[f64::NEG_INFINITY, f64::INFINITY], 0.0f64);
 }
 
 #[test]
 fn test_median_9a() {
-    let mut median = Median::new();
-    assert!(median.push(f32::MAX).is_ok());
-    assert!(median.push(f32::MAX).is_ok());
-    assert_eq!(median.get().unwrap(), f32::MAX);
+    do_test_array_f32(&[f32::MAX, f32::MAX], f32::MAX);
+    do_test_array_f32(&[f32::MIN, f32::MIN], f32::MIN);
 }
 
 #[test]
 fn test_median_9b() {
-    let mut median = Median::new();
-    assert!(median.push(f64::MAX).is_ok());
-    assert!(median.push(f64::MAX).is_ok());
-    assert_eq!(median.get().unwrap(), f64::MAX);
+    do_test_array_f64(&[f64::MAX, f64::MAX], f64::MAX);
+    do_test_array_f64(&[f64::MIN, f64::MIN], f64::MIN);
 }
 
 #[test]
 fn test_median_9c() {
-    let mut median = Median::new();
-    assert!(median.push(f32::MAX).is_ok());
-    assert!(median.push(f32::MIN).is_ok());
-    assert_eq!(median.get().unwrap(), 0.0f32);
+    do_test_array_f32(&[f32::MIN, f32::MAX], 0.0f32);
+    do_test_array_f32(&[f32::MIN, f32::MAX], 0.0f32);
 }
 
 #[test]
 fn test_median_9d() {
-    let mut median = Median::new();
-    assert!(median.push(f64::MAX).is_ok());
-    assert!(median.push(f64::MIN).is_ok());
-    assert_eq!(median.get().unwrap(), 0.0f64);
+    do_test_array_f64(&[f64::MIN, f64::MAX], 0.0f64);
+    do_test_array_f64(&[f64::MIN, f64::MAX], 0.0f64);
 }

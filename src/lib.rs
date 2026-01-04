@@ -37,12 +37,14 @@
 //!     println!("Final median: {}", rolling_median.get().expect("No result!"))
 //! }
 //! ```
+//!
+//! &#128073; Please see the [`Median`] struct for details!
 
 use ordered_float::{FloatCore, OrderedFloat};
 use std::{cmp::Reverse, collections::BinaryHeap, convert::TryInto};
 
 // --------------------------------------------------------------------------
-// Error type
+// Error Type
 // --------------------------------------------------------------------------
 
 /// Indicates that the given value was invalid.
@@ -50,17 +52,35 @@ use std::{cmp::Reverse, collections::BinaryHeap, convert::TryInto};
 pub struct InvalidValue;
 
 // --------------------------------------------------------------------------
-// Utility function
+// Midpoint computation
 // --------------------------------------------------------------------------
 
-#[inline]
-fn midpoint<T: FloatCore>(a: T, b: T) -> T {
-    if size_of::<T>() == 4usize {
-        T::from(a.to_f32().unwrap().midpoint(b.to_f32().unwrap())).unwrap()
-    } else if size_of::<T>() == 8usize {
-        T::from(a.to_f64().unwrap().midpoint(b.to_f64().unwrap())).unwrap()
-    } else {
-        unimplemented!("Unsupported floating-point type!");
+/// Computes the midpoint (average) of two floating point numbers
+pub trait Midpoint {
+    fn midpoint(a: Self, b: Self) -> Self;
+}
+
+impl Midpoint for f32 {
+    #[inline]
+    fn midpoint(a: Self, b: Self) -> Self {
+        assert!(!a.is_nan());
+        assert!(!b.is_nan());
+        if a.is_infinite() && b.is_infinite() && (a.signum() != b.signum()) {
+            return 0.0_f32; // midpoint(inf, -inf)
+        }
+        a.midpoint(b)
+    }
+}
+
+impl Midpoint for f64 {
+    #[inline]
+    fn midpoint(a: Self, b: Self) -> Self {
+        assert!(!a.is_nan());
+        assert!(!b.is_nan());
+        if a.is_infinite() && b.is_infinite() && (a.signum() != b.signum()) {
+            return 0.0_f64; // midpoint(inf, -inf)
+        }
+        a.midpoint(b)
     }
 }
 
@@ -69,12 +89,12 @@ fn midpoint<T: FloatCore>(a: T, b: T) -> T {
 // --------------------------------------------------------------------------
 
 /// Computes the median of a data set, using a "rolling" (online) algorithm
-pub struct Median<T: FloatCore> {
+pub struct Median<T: FloatCore + Midpoint> {
     heap_lo: BinaryHeap<OrderedFloat<T>>,
     heap_hi: BinaryHeap<Reverse<OrderedFloat<T>>>,
 }
 
-impl<T: FloatCore> Median<T> {
+impl<T: FloatCore + Midpoint> Median<T> {
     /// Initializes a new rolling median computation
     pub fn new() -> Self {
         Median { heap_lo: BinaryHeap::new(), heap_hi: BinaryHeap::new() }
@@ -82,11 +102,11 @@ impl<T: FloatCore> Median<T> {
 
     /// Insert the next value
     ///
-    /// Returns `Ok(())`, if the value was inserted, or `Err(InvalidValue)`, if an attempt to insert a non-finite value was made.
+    /// Returns `Ok(())`, if the value was inserted, or `Err(InvalidValue)`, if an attempt to insert `NaN` was made.
     ///
     /// This operation has a complexity of **`O(log(n))`**.
     pub fn push(&mut self, value: T) -> Result<(), InvalidValue> {
-        if !value.is_finite() {
+        if value.is_nan() {
             return Err(InvalidValue);
         }
 
@@ -120,27 +140,37 @@ impl<T: FloatCore> Median<T> {
         } else if self.heap_lo.len() == self.heap_hi.len() {
             let lo_top = *self.heap_lo.peek().unwrap();
             let hi_top = self.heap_hi.peek().unwrap().0;
-            Some(midpoint(lo_top.0, hi_top.0))
+            Some(T::midpoint(lo_top.0, hi_top.0))
         } else {
             Some(self.heap_lo.peek().unwrap().0)
         }
     }
 
-    /// Clear all values that have been pushed so far
+    /// Returns the number of values that have been inserted so far
+    pub fn len(&self) -> usize {
+        self.heap_lo.len().saturating_add(self.heap_hi.len())
+    }
+
+    /// Returns `true`, if **no** values have been inserted yet; otherwise `true`
+    pub fn is_empty(&self) -> bool {
+        self.heap_lo.is_empty() && self.heap_hi.is_empty()
+    }
+
+    /// Clear all values and restart the median computation from scratch
     pub fn clear(&mut self) {
         self.heap_lo.clear();
         self.heap_hi.clear();
     }
 }
 
-impl<T: FloatCore> Default for Median<T> {
+impl<T: FloatCore + Midpoint> Default for Median<T> {
     /// Initializes a new rolling median computation
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: FloatCore> TryInto<f32> for Median<T> {
+impl<T: FloatCore + Midpoint> TryInto<f32> for Median<T> {
     type Error = ();
     fn try_into(self) -> Result<f32, Self::Error> {
         match self.get() {
@@ -150,7 +180,7 @@ impl<T: FloatCore> TryInto<f32> for Median<T> {
     }
 }
 
-impl<T: FloatCore> TryInto<f64> for Median<T> {
+impl<T: FloatCore + Midpoint> TryInto<f64> for Median<T> {
     type Error = ();
     fn try_into(self) -> Result<f64, Self::Error> {
         match self.get() {
