@@ -42,16 +42,8 @@
 
 pub mod float_utils;
 
-use crate::float_utils::{FloatOrd, FloatType};
+use crate::float_utils::{FloatOrd, FloatType, InvalidValue};
 use std::{cmp::Reverse, collections::BinaryHeap};
-
-// --------------------------------------------------------------------------
-// Error Type
-// --------------------------------------------------------------------------
-
-/// Indicates that the given value was invalid.
-#[derive(Debug)]
-pub struct InvalidValue;
 
 // --------------------------------------------------------------------------
 // Rolling median
@@ -75,14 +67,12 @@ impl<T: FloatType> Median<T> {
     ///
     /// This operation has a complexity of **`O(log(n))`**.
     pub fn push(&mut self, value: T) -> Result<(), InvalidValue> {
-        if value.is_nan() {
-            return Err(InvalidValue);
-        }
+        let value = FloatOrd::new(value)?;
 
-        if self.heap_lo.peek().map_or(true, |peek| value.leq(&peek.0)) {
-            self.heap_lo.push(value.into());
+        if self.heap_lo.peek().map_or(true, |peek| value <= *peek) {
+            self.heap_lo.push(value);
         } else {
-            self.heap_hi.push(Reverse(value.into()));
+            self.heap_hi.push(Reverse(value));
         }
 
         if self.heap_lo.len() > self.heap_hi.len().checked_add(1usize).unwrap() {
@@ -109,9 +99,9 @@ impl<T: FloatType> Median<T> {
         } else if self.heap_lo.len() == self.heap_hi.len() {
             let lo_top = *self.heap_lo.peek().unwrap();
             let hi_top = self.heap_hi.peek().unwrap().0;
-            Some(lo_top.0.midpoint(hi_top.0))
+            Some(lo_top.midpoint(hi_top))
         } else {
-            Some(self.heap_lo.peek().unwrap().0)
+            Some(self.heap_lo.peek().unwrap().into_inner())
         }
     }
 

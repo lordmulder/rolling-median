@@ -5,39 +5,24 @@
 use std::cmp::Ordering;
 
 // --------------------------------------------------------------------------
+// Error Type
+// --------------------------------------------------------------------------
+
+/// Indicates that the given value was invalid.
+#[derive(Debug)]
+pub struct InvalidValue;
+
+// --------------------------------------------------------------------------
 // Float type
 // --------------------------------------------------------------------------
 
 /// Generic floating-point type, e.g, `f32` or `f64`
-pub trait FloatType: Copy + Clone {
-    fn cmp(&self, other: &Self) -> Ordering;
+pub trait FloatType: Copy + Clone + PartialEq + PartialOrd + Default {
     fn is_nan(self) -> bool;
     fn midpoint(self, other: Self) -> Self;
-
-    #[inline]
-    fn eq(self, other: &Self) -> bool {
-        self.cmp(other) == Ordering::Equal
-    }
-
-    #[inline]
-    fn leq(&self, other: &Self) -> bool {
-        match self.cmp(other) {
-            Ordering::Less | Ordering::Equal => true,
-            Ordering::Greater => false,
-        }
-    }
 }
 
 impl FloatType for f32 {
-    #[inline]
-    fn cmp(&self, other: &Self) -> Ordering {
-        assert!(!(self.is_nan() || other.is_nan()), "Value must not be NaN!");
-        if *self == *other {
-            return Ordering::Equal;
-        }
-        self.total_cmp(other)
-    }
-
     #[inline]
     fn is_nan(self) -> bool {
         f32::is_nan(self)
@@ -45,24 +30,11 @@ impl FloatType for f32 {
 
     #[inline]
     fn midpoint(self, other: Self) -> Self {
-        assert!(!(self.is_nan() || other.is_nan()), "Value must not be NaN!");
-        match f32::midpoint(self, other) {
-            value if value.is_nan() => f32::default(),
-            value => value,
-        }
+        f32::midpoint(self, other)
     }
 }
 
 impl FloatType for f64 {
-    #[inline]
-    fn cmp(&self, other: &Self) -> Ordering {
-        assert!(!(self.is_nan() || other.is_nan()), "Value must not be NaN!");
-        if *self == *other {
-            return Ordering::Equal;
-        }
-        self.total_cmp(other)
-    }
-
     #[inline]
     fn is_nan(self) -> bool {
         f64::is_nan(self)
@@ -70,11 +42,7 @@ impl FloatType for f64 {
 
     #[inline]
     fn midpoint(self, other: Self) -> Self {
-        assert!(!(self.is_nan() || other.is_nan()), "Value must not be NaN!");
-        match f64::midpoint(self, other) {
-            value if value.is_nan() => f64::default(),
-            value => value,
-        }
+        f64::midpoint(self, other)
     }
 }
 
@@ -84,20 +52,37 @@ impl FloatType for f64 {
 
 /// Ordered floating-point wrapper type, extends on `FloatType`
 #[derive(Debug, Clone, Copy)]
-pub struct FloatOrd<T: FloatType>(pub T);
+pub struct FloatOrd<T: FloatType>(T);
 
-impl<T: FloatType> From<T> for FloatOrd<T> {
+impl<T: FloatType> FloatOrd<T> {
     #[inline]
-    fn from(value: T) -> Self {
-        assert!(!value.is_nan(), "Value must not be NaN!");
-        Self(value)
+    pub fn new(value: T) -> Result<Self, InvalidValue> {
+        if value.is_nan() {
+            return Err(InvalidValue);
+        }
+        Ok(Self(value))
+    }
+
+    #[inline]
+    pub fn into_inner(self) -> T {
+        self.0
+    }
+
+    #[inline]
+    pub fn midpoint(self, other: Self) -> T {
+        let result = self.0.midpoint(other.0);
+        if !result.is_nan() {
+            result
+        } else {
+            Default::default()
+        }
     }
 }
 
 impl<T: FloatType> PartialEq for FloatOrd<T> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        self.0.eq(&other.0)
+        self.0 == other.0
     }
 }
 
@@ -113,6 +98,12 @@ impl<T: FloatType> PartialOrd for FloatOrd<T> {
 impl<T: FloatType> Ord for FloatOrd<T> {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
-        self.0.cmp(&other.0)
+        if self.0 < other.0 {
+            Ordering::Less
+        } else if self.0 > other.0 {
+            Ordering::Greater
+        } else {
+            Ordering::Equal
+        }
     }
 }

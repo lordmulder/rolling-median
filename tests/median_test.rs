@@ -2,13 +2,14 @@
 // rolling-median
 // Copyright (C) 2025-2026 by LoRd_MuldeR <mulder2@gmx.de>
 
-use core::{f32, f64};
-
 use rand_pcg::{
     rand_core::{RngCore, SeedableRng, TryRngCore},
     Pcg64,
 };
-use rolling_median::{float_utils::FloatOrd, InvalidValue, Median};
+use rolling_median::{
+    float_utils::{FloatOrd, InvalidValue},
+    Median,
+};
 
 // --------------------------------------------------------------------------
 // Utility functions
@@ -20,14 +21,14 @@ fn compute_median(values: &Vec<f64>) -> Option<f64> {
     }
 
     let len = values.len();
-    let mut values: Vec<FloatOrd<f64>> = values.iter().map(|val| FloatOrd::from(*val)).collect();
+    let mut values: Vec<FloatOrd<f64>> = values.iter().map(|val| FloatOrd::new(*val).unwrap()).collect();
     values.sort();
     let (mid, rem) = (len / 2usize, len % 2usize);
 
     if rem == 0usize {
-        Some((values[mid - 1].0 + values[mid].0) / 2.0f64)
+        Some(values[mid - 1].into_inner().midpoint(values[mid].into_inner()))
     } else {
-        Some(values[mid].0)
+        Some(values[mid].into_inner())
     }
 }
 

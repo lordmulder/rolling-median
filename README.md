@@ -20,7 +20,7 @@ In order to use this crate, add it to `[dependencies]` in your **`Cargo.toml`**:
 
 ```
 [dependencies]
-rolling-median = "1.5.3"
+rolling-median = "1.5.4"
 ```
 
 ## Usage
