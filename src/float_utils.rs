@@ -70,9 +70,9 @@ impl<T: FloatType> FloatOrd<T> {
 
     #[inline]
     pub fn midpoint(self, other: Self) -> T {
-        let result = self.0.midpoint(other.0);
-        if !result.is_nan() {
-            result
+        let midpoint_retval = self.0.midpoint(other.0);
+        if !midpoint_retval.is_nan() {
+            midpoint_retval
         } else {
             Default::default()
         }

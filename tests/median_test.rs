@@ -2,8 +2,9 @@
 // rolling-median
 // Copyright (C) 2025-2026 by LoRd_MuldeR <mulder2@gmx.de>
 
+use rand::Rng;
 use rand_pcg::{
-    rand_core::{RngCore, SeedableRng, TryRngCore},
+    rand_core::{SeedableRng, TryRngCore},
     Pcg64,
 };
 use rolling_median::{
@@ -21,7 +22,7 @@ fn compute_median(values: &Vec<f64>) -> Option<f64> {
     }
 
     let len = values.len();
-    let mut values: Vec<FloatOrd<f64>> = values.iter().map(|val| FloatOrd::new(*val).unwrap()).collect();
+    let mut values: Vec<FloatOrd<f64>> = values.iter().copied().map(|val| FloatOrd::new(val).unwrap()).collect();
     values.sort();
     let (mid, rem) = (len / 2usize, len % 2usize);
 
@@ -32,32 +33,55 @@ fn compute_median(values: &Vec<f64>) -> Option<f64> {
     }
 }
 
+fn next_safe_u64(random: &mut Pcg64) -> f64 {
+    loop {
+        let value = random.try_next_u64().unwrap();
+        if value <= 9007199254740991u64 {
+            return value as f64;
+        }
+    }
+}
+
 fn do_test_u64(seed: u64, count: usize) {
-    let mut median = Median::new();
-    let mut values: Vec<f64> = Vec::with_capacity(count);
     let mut random = Pcg64::seed_from_u64(seed);
+    let mut median = Median::new();
+    let mut values = Vec::with_capacity(count);
 
     for _ in 0..count {
-        let value = random.try_next_u64().unwrap() as f64;
+        let value = next_safe_u64(&mut random);
         values.push(value);
-        assert!(median.push(value).is_ok())
-    }
+        assert!(median.push(value).is_ok());
 
-    assert_eq!(compute_median(&values), median.get());
+        let computed = median.get();
+        let expected = compute_median(&values);
+        if computed.is_some() {
+            assert!(expected.is_some());
+            assert_eq!(computed.unwrap(), expected.unwrap());
+        } else {
+            assert!(expected.is_none())
+        }
+    }
 }
 
 fn do_test_f64(seed: u64, count: usize) {
-    let mut median = Median::new();
-    let mut values: Vec<f64> = Vec::with_capacity(count);
     let mut random = Pcg64::seed_from_u64(seed);
+    let mut median = Median::new();
+    let mut values = Vec::with_capacity(count);
 
     for _ in 0..count {
-        let value = (random.next_u64() >> 11) as f64 * (1.0 / (1u64 << 53) as f64);
+        let value = random.random();
         values.push(value);
-        assert!(median.push(value).is_ok())
-    }
+        assert!(median.push(value).is_ok());
 
-    assert_eq!(compute_median(&values), median.get());
+        let computed = median.get();
+        let expected = compute_median(&values);
+        if computed.is_some() {
+            assert!(expected.is_some());
+            assert_eq!(computed.unwrap(), expected.unwrap());
+        } else {
+            assert!(expected.is_none())
+        }
+    }
 }
 
 fn do_test_array_f32(values: &[f32], expected_median: f32) {
@@ -65,7 +89,7 @@ fn do_test_array_f32(values: &[f32], expected_median: f32) {
     for value in values {
         assert!(median.push(*value).is_ok());
     }
-    assert_eq!(median.get().unwrap(), expected_median);
+    assert_eq!(median.get(), Some(expected_median));
 }
 
 fn do_test_array_f64(values: &[f64], expected_median: f64) {
@@ -73,7 +97,7 @@ fn do_test_array_f64(values: &[f64], expected_median: f64) {
     for value in values {
         assert!(median.push(*value).is_ok());
     }
-    assert_eq!(median.get().unwrap(), expected_median);
+    assert_eq!(median.get(), Some(expected_median));
 }
 
 // --------------------------------------------------------------------------
