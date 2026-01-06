@@ -2,7 +2,7 @@
 // rolling-median
 // Copyright (C) 2025-2026 by LoRd_MuldeR <mulder2@gmx.de>
 
-use std::cmp::Ordering;
+use std::{cmp::Ordering, fmt::Debug};
 
 // --------------------------------------------------------------------------
 // Error Type
@@ -17,7 +17,7 @@ pub struct InvalidValue;
 // --------------------------------------------------------------------------
 
 /// Generic floating-point type, e.g, `f32` or `f64`
-pub trait FloatType: Copy + Clone + PartialEq + PartialOrd + Default {
+pub trait FloatType: Copy + Clone + PartialEq + PartialOrd + Default + Debug {
     fn is_nan(self) -> bool;
     fn midpoint(self, other: Self) -> Self;
 }
@@ -47,10 +47,9 @@ impl FloatType for f64 {
 }
 
 // --------------------------------------------------------------------------
-// Ordered float
+// Ordered wrapper
 // --------------------------------------------------------------------------
 
-/// Ordered floating-point wrapper type, extends on `FloatType`
 #[derive(Debug, Clone, Copy)]
 pub struct FloatOrd<T: FloatType>(T);
 
