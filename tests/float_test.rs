@@ -9,10 +9,17 @@ use rolling_median::float_utils::{FloatOrd, FloatType};
 // Utility functions
 // --------------------------------------------------------------------------
 
-fn assert_arrays_equal<T: FloatType>(array_a: &[FloatOrd<T>], array_b: &[T]) {
+fn assert_arrays_equal_f32(array_a: &[FloatOrd<f32>], array_b: &[f32]) {
     assert_eq!(array_a.len(), array_b.len());
-    for (a, b) in array_a.iter().map(|val| val.into_inner()).zip(array_b.iter().copied()) {
-        assert_eq!(a, b)
+    for (a, b) in array_a.iter().map(|val| val.into_inner()).zip(array_b.iter()) {
+        assert_eq!(a.to_bits(), b.to_bits());
+    }
+}
+
+fn assert_arrays_equal_f64(array_a: &[FloatOrd<f64>], array_b: &[f64]) {
+    assert_eq!(array_a.len(), array_b.len());
+    for (a, b) in array_a.iter().map(|val| val.into_inner()).zip(array_b.iter()) {
+        assert_eq!(a.to_bits(), b.to_bits());
     }
 }
 
@@ -135,7 +142,7 @@ fn test_float_3a() {
     let ordered: Vec<FloatOrd<f32>> = VALUES.iter().copied().map(|val| FloatOrd::new(val).unwrap()).collect();
     for mut array in ordered.iter().copied().permutations(VALUES.len()) {
         array.sort();
-        assert_arrays_equal(&array[..], &VALUES[..]);
+        assert_arrays_equal_f32(&array[..], &VALUES[..]);
     }
 }
 
@@ -158,7 +165,7 @@ fn test_float_3b() {
     let ordered: Vec<FloatOrd<f64>> = VALUES.iter().copied().map(|val| FloatOrd::new(val).unwrap()).collect();
     for mut array in ordered.iter().copied().permutations(VALUES.len()) {
         array.sort();
-        assert_arrays_equal(&array[..], &VALUES[..]);
+        assert_arrays_equal_f64(&array[..], &VALUES[..]);
     }
 }
 
@@ -181,7 +188,7 @@ fn test_float_4a() {
     let ordered: Vec<FloatOrd<f32>> = VALUES.iter().copied().map(|val| FloatOrd::new(val).unwrap()).collect();
     for mut array in ordered.iter().copied().permutations(VALUES.len()) {
         array.sort();
-        assert_arrays_equal(&array[..], &VALUES[..]);
+        assert_arrays_equal_f32(&array[..], &VALUES[..]);
     }
 }
 
@@ -204,6 +211,6 @@ fn test_float_4b() {
     let ordered: Vec<FloatOrd<f64>> = VALUES.iter().copied().map(|val| FloatOrd::new(val).unwrap()).collect();
     for mut array in ordered.iter().copied().permutations(VALUES.len()) {
         array.sort();
-        assert_arrays_equal(&array[..], &VALUES[..]);
+        assert_arrays_equal_f64(&array[..], &VALUES[..]);
     }
 }

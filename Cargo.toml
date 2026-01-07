@@ -3,7 +3,7 @@ name = "rolling-median"
 description = "Compute the median using a 'rolling' (online) algorithm"
 license = "0BSD"
 repository = "https://github.com/lordmulder/rolling-median"
-version = "1.5.4"
+version = "1.5.5"
 edition = "2018"
 
 [dev-dependencies]

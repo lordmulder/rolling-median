@@ -29,8 +29,8 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.release.tag_name && format('refs/tags/{0}', github.event.release.tag_name) || github.sha }}
       - run: |
-          cargo check --workspace --verbose
-          cargo clippy --workspace
+          cargo check --workspace --all-targets --all-features --verbose
+          cargo clippy --workspace --all-targets --all-features --verbose
           cargo fmt --all --check --verbose
 
   # --------------------------------------------------------------------------

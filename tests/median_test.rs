@@ -16,7 +16,7 @@ use rolling_median::{
 // Utility functions
 // --------------------------------------------------------------------------
 
-fn compute_median(values: &Vec<f64>) -> Option<f64> {
+fn compute_median(values: &[f64]) -> Option<f64> {
     if values.is_empty() {
         return None;
     }
@@ -54,11 +54,11 @@ fn do_test_u64(seed: u64, count: usize) {
 
         let computed = median.get();
         let expected = compute_median(&values);
-        if computed.is_some() {
-            assert!(expected.is_some());
-            assert_eq!(computed.unwrap(), expected.unwrap());
+
+        if let Some(expected) = expected {
+            assert_eq!(computed.expect("No result!").to_bits(), expected.to_bits());
         } else {
-            assert!(expected.is_none())
+            assert!(computed.is_none())
         }
     }
 }
@@ -75,29 +75,33 @@ fn do_test_f64(seed: u64, count: usize) {
 
         let computed = median.get();
         let expected = compute_median(&values);
-        if computed.is_some() {
-            assert!(expected.is_some());
-            assert_eq!(computed.unwrap(), expected.unwrap());
+
+        if let Some(expected) = expected {
+            assert_eq!(computed.expect("No result!").to_bits(), expected.to_bits());
         } else {
-            assert!(expected.is_none())
+            assert!(computed.is_none())
         }
     }
 }
 
-fn do_test_array_f32(values: &[f32], expected_median: f32) {
+fn do_test_array_f32(values: &[f32], expected: f32) {
     let mut median = Median::new();
     for value in values {
         assert!(median.push(*value).is_ok());
     }
-    assert_eq!(median.get(), Some(expected_median));
+
+    let computed = median.get().expect("No result available!");
+    assert_eq!(computed.to_bits(), expected.to_bits());
 }
 
-fn do_test_array_f64(values: &[f64], expected_median: f64) {
+fn do_test_array_f64(values: &[f64], expected: f64) {
     let mut median = Median::new();
     for value in values {
         assert!(median.push(*value).is_ok());
     }
-    assert_eq!(median.get(), Some(expected_median));
+
+    let computed = median.get().expect("No result available!");
+    assert_eq!(computed.to_bits(), expected.to_bits());
 }
 
 // --------------------------------------------------------------------------
